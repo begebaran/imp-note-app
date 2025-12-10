@@ -12,19 +12,19 @@
     <style>
         :root {
             /* --- GEMINI DESIGN SYSTEM --- */
-            --bg-body: #131314;       /* Derin Siyah/Gri */
-            --bg-surface: #1E1F20;    /* Kart ve Menü Zemini */
+            --bg-body: #131314;
+            --bg-surface: #1E1F20;
             --bg-surface-hover: #28292a;
             
-            --primary-accent: #A8C7FA; /* Gemini Mavisi (Vurgular) */
-            --primary-text: #E3E3E3;   /* Ana Metin */
-            --secondary-text: #C4C7C5; /* Yan Metin */
+            --primary-accent: #A8C7FA;
+            --primary-text: #E3E3E3;
+            --secondary-text: #C4C7C5;
             
-            --border-color: #444746;   /* İnce Çizgiler */
+            --border-color: #444746;
             --radius-md: 12px;
             --radius-full: 50px;
             
-            --sidebar-width: 280px;
+            --sidebar-width: 300px;
             --bottom-safe-area: env(safe-area-inset-bottom, 20px);
         }
 
@@ -37,7 +37,7 @@
             margin: 0; height: 100dvh; display: flex; overflow: hidden;
         }
 
-        /* --- MENÜ BUTONLARI (SOL & SAĞ ÜST) --- */
+        /* --- HEADER BUTTONS --- */
         .header-btn {
             position: absolute; top: 16px; z-index: 60;
             background: transparent; border: none; color: var(--secondary-text);
@@ -68,7 +68,6 @@
         
         .menu-label { font-size: 0.75rem; font-weight: 500; color: var(--secondary-text); margin: 20px 0 10px 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Menü Elemanları */
         .menu-item {
             display: flex; align-items: center; gap: 12px;
             padding: 12px 16px; border-radius: var(--radius-full);
@@ -100,13 +99,10 @@
             padding: 70px 20px 0 20px; max-width: 800px; margin: 0 auto;
         }
 
-        /* CARD (GEMINI STYLE - CLEAN TEXT) */
         .content-wrapper {
             flex: 1; display: flex; flex-direction: column; overflow-y: auto; margin-bottom: 20px;
         }
-        .card {
-            width: 100%; display: flex; flex-direction: column; gap: 10px;
-        }
+        .card { width: 100%; display: flex; flex-direction: column; gap: 10px; }
         .card-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
         .badge {
             background: #2c2c2e; color: var(--secondary-text);
@@ -114,11 +110,12 @@
         }
         .stars { color: #FSDD82; letter-spacing: 2px; font-size: 0.9rem; }
         
-        /* Metin Okuma Alanı */
         .card-text {
             font-size: 1.15rem; line-height: 1.7; color: var(--primary-text);
             white-space: pre-wrap; font-weight: 400;
         }
+        /* Bold görünümü için */
+        .card-text b, .card-text strong { color: #fff; font-weight: 700; }
 
         /* BOTTOM ACTIONS */
         .bottom-actions {
@@ -127,7 +124,6 @@
             background: linear-gradient(to top, var(--bg-body) 70%, transparent);
         }
 
-        /* GEMINI BUTTONS */
         .action-btn {
             height: 48px; padding: 0 24px; border-radius: var(--radius-full);
             border: 1px solid var(--border-color); background: var(--bg-surface);
@@ -143,7 +139,7 @@
         }
         .btn-filled:hover { background: #c4c7c5; border-color: #c4c7c5; }
 
-        /* --- MODALS (GEMINI STYLE) --- */
+        /* --- MODALS --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px);
@@ -154,20 +150,18 @@
         }
         .modal-title { margin: 0 0 20px 0; font-size: 1.2rem; font-weight: 500; color: var(--primary-text); }
 
-        /* Rich Text Toolbar */
+        /* SIMPLIFIED TOOLBAR (ONLY BOLD) */
         .toolbar {
-            display: flex; gap: 5px; margin-bottom: 12px; background: #1e1f20; padding: 8px; border-radius: 12px; flex-wrap: wrap; align-items: center;
+            display: flex; gap: 5px; margin-bottom: 12px; background: #1e1f20; padding: 8px; border-radius: 12px;
         }
         .tool-icon {
-            background: transparent; border: none; color: #ccc; cursor: pointer; padding: 6px; border-radius: 6px;
-            font-weight: bold; font-family: serif; display: flex; align-items: center; justify-content: center;
+            background: transparent; border: none; color: #ccc; cursor: pointer; padding: 8px 12px; border-radius: 6px;
+            font-weight: 700; font-family: serif; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
         }
         .tool-icon:hover { background: #444; color: white; }
-        .tool-icon svg { width: 18px; height: 18px; }
-        .color-wrapper { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1px solid #555; cursor: pointer; }
-        input[type="color"] { width: 150%; height: 150%; transform: translate(-25%, -25%); border: none; cursor: pointer; padding: 0; }
+        /* Aktif buton efekti eklenebilir */
+        .tool-icon:active { background: var(--primary-accent); color: #000; }
 
-        /* Editor */
         .editor {
             flex: 1; background: #1e1f20; border: none; border-radius: 12px; padding: 16px;
             color: var(--primary-text); font-family: inherit; font-size: 1rem; line-height: 1.5;
@@ -232,13 +226,11 @@
             </div>
 
             <div class="menu-label">KATEGORİLER</div>
-            <div id="sidebar-tag-list">
-                </div>
+            <div id="sidebar-tag-list"></div>
             <button class="btn-new-tag" onclick="openNewTagModal()">+ Yeni Kategori</button>
 
-            <div class="menu-label">RUTİNLER & ÖNEM</div>
-            <div id="sidebar-rating-list">
-                </div>
+            <div class="menu-label">ÖNEM & FİLTRE</div>
+            <div id="sidebar-rating-list"></div>
         </div>
         
         <div style="font-size:0.7rem; color:#666; text-align:center;" id="status-text">BAĞLANTI BEKLENİYOR...</div>
@@ -264,7 +256,7 @@
             </button>
             
             <button class="action-btn btn-filled" onclick="showRandom()">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.22-7.52-3.22 7.52-3.22L6.5 4.86v12.64z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/></svg>
                 Rastgele
             </button>
             
@@ -275,18 +267,14 @@
         </div>
     </main>
 
-    <div class="toast" id="toast">İşlem Tamam</div>
+    <div class="toast" id="toast">Bilgi</div>
 
     <div class="modal-overlay" id="modal-add">
         <div class="modal-box">
             <h3 class="modal-title">Not Ekle</h3>
             
             <div class="toolbar">
-                <button class="tool-icon" onclick="formatText('bold')"><b>B</b></button>
-                <button class="tool-icon" onclick="formatText('italic')"><i>I</i></button>
-                <div class="color-wrapper"><input type="color" onchange="formatText('foreColor', this.value)"></div>
-                <button class="tool-icon" onclick="formatText('justifyLeft')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h12v-2H3v2zm0-4h18v-2H3v2zm0-4h12V7H3v2zm0-6v2h18V3H3z"/></svg></button>
-                <button class="tool-icon" onclick="formatText('justifyCenter')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/></svg></button>
+                <button class="tool-icon" onclick="formatText('bold')" title="Kalın"><b>B</b></button>
             </div>
 
             <div class="editor" id="add-editor" contenteditable="true"></div>
@@ -305,9 +293,7 @@
             <h3 class="modal-title">Düzenle</h3>
             
             <div class="toolbar">
-                <button class="tool-icon" onclick="formatText('bold')"><b>B</b></button>
-                <button class="tool-icon" onclick="formatText('italic')"><i>I</i></button>
-                <div class="color-wrapper"><input type="color" onchange="formatText('foreColor', this.value)"></div>
+                <button class="tool-icon" onclick="formatText('bold')" title="Kalın"><b>B</b></button>
             </div>
 
             <div class="editor" id="edit-editor" contenteditable="true"></div>
@@ -369,7 +355,7 @@
     let GOOGLE_SCRIPT_URL = localStorage.getItem('imp_app_url');
     let notes = [];
     
-    // Varsayılan Kategoriler ve Sıralama
+    // Varsayılan Kategoriler
     let tags = ["İLİŞKİ", "FİNANSAL", "GENEL", "RUTİN"];
     
     let currentFilter = { type: 'all', val: null };
@@ -451,11 +437,9 @@
 
     /* --- SIDEBAR RENDERING --- */
     function extractTags() {
-        // Varsayılan listeyi koru, yenileri ekle
         const defaults = ["İLİŞKİ", "FİNANSAL", "GENEL", "RUTİN"];
         const found = new Set(defaults);
         notes.forEach(n => { if(n.tag) found.add(n.tag); });
-        // Önce varsayılanlar, sonra diğerleri alfabetik
         tags = Array.from(found).sort((a,b) => {
              const idxA = defaults.indexOf(a), idxB = defaults.indexOf(b);
              if(idxA !== -1 && idxB !== -1) return idxA - idxB;
