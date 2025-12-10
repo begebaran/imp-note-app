@@ -4,26 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IMP Note App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* --- RENK PALETİ --- */
             --bg-body: #0c0b0b;
             --bg-card: #141313;
             --border-subtle: rgba(194, 178, 128, 0.15);
-            --accent-primary: #C2B280;
+            
+            --accent-primary: #C2B280; /* İkon Rengi (Gold) */
             --accent-glow: rgba(194, 178, 128, 0.3);
+            
             --text-main: #e0d8c3;
             --text-muted: #757065;
+            
             --font-main: 'Rajdhani', sans-serif;
-            --radius-lg: 12px;
+            --radius-lg: 16px;
             --transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            
+            --sidebar-width: 280px;
         }
 
         body {
             background-color: var(--bg-body);
             background-image: radial-gradient(circle at 50% 0%, #1f1c18 0%, #0c0b0b 70%);
             color: var(--text-main); font-family: var(--font-main);
-            margin: 0; display: flex; height: 100vh; overflow: hidden;
+            margin: 0; height: 100vh; overflow: hidden; /* Sayfa kaymasını engelle */
+            display: flex; flex-direction: column;
         }
 
         /* --- MENÜ BUTONU --- */
@@ -32,8 +39,6 @@
             background: transparent; border: none; color: var(--accent-primary);
             font-size: 2rem; cursor: pointer; transition: var(--transition);
         }
-
-        /* --- AYARLAR BUTONU (SAĞ ÜST) --- */
         .settings-trigger {
             position: absolute; top: 20px; right: 20px; z-index: 60;
             background: transparent; border: none; color: var(--text-muted);
@@ -43,11 +48,11 @@
 
         /* --- SIDEBAR --- */
         aside {
-            position: fixed; top: 0; left: 0; height: 100%; width: 280px;
+            position: fixed; top: 0; left: 0; height: 100%; width: var(--sidebar-width);
             background: rgba(12, 11, 11, 0.98); border-right: 1px solid var(--border-subtle);
             transform: translateX(-100%); transition: var(--transition); z-index: 50;
             display: flex; flex-direction: column; padding: 80px 20px 20px 20px;
-            box-sizing: border-box;
+            box-sizing: border-box; overflow-y: auto;
         }
         aside.open { transform: translateX(0); box-shadow: 10px 0 50px rgba(0,0,0,0.8); }
         .backdrop {
@@ -56,104 +61,229 @@
         }
         .backdrop.show { display: block; opacity: 1; }
 
-        /* --- KART VE İÇERİK --- */
-        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        /* --- SIDEBAR İÇERİK --- */
+        .sidebar-section-title {
+            font-size: 0.8rem; letter-spacing: 2px; color: var(--text-muted);
+            margin-top: 20px; margin-bottom: 10px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 5px;
+        }
+
+        /* Tüm Notlar Butonu */
+        .btn-all-notes {
+            background: rgba(255,255,255,0.05); color: #fff; padding: 12px; border-radius: 8px;
+            text-align: left; cursor: pointer; font-weight: 700; border: 1px solid var(--border-subtle);
+            margin-bottom: 10px; transition: 0.2s;
+        }
+        .btn-all-notes:hover { background: var(--accent-primary); color: #000; }
+
+        /* Kategori Listesi */
+        .tag-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 10px; margin-bottom: 5px; cursor: pointer;
+            font-weight: 700; font-size: 1rem; transition: 0.2s;
+            border-radius: 8px; background: rgba(255,255,255,0.02);
+        }
+        .tag-item:hover { filter: brightness(1.2); transform: translateX(5px); }
+        .tag-text { flex: 1; }
+        .tag-options { background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; opacity: 0; }
+        .tag-item:hover .tag-options { opacity: 1; }
+
+        /* Yeni Kategori Butonu */
+        .btn-new {
+            background: transparent; border: 1px dashed var(--text-muted); color: var(--text-muted);
+            padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600; font-family: inherit;
+        }
+        .btn-new:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        /* Yıldız (Önem) Listesi */
+        .rating-filter-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px;
+            cursor: pointer; border-radius: 8px; transition: 0.2s; color: #aaa;
+        }
+        .rating-filter-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .rating-stars { color: #d4af37; letter-spacing: 2px; }
+
+        /* --- ANA EKRAN DÜZENİ (FLEXBOX İLE SABİTLEME) --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Dikey yerleşim */
+            padding: 20px;
+            padding-top: 80px; /* Üstteki butonlar için boşluk */
+            height: 100%;
+            box-sizing: border-box;
+            max-width: 600px;
+            margin: 0 auto; /* Ortala */
+            width: 100%;
+        }
+
+        /* Kart alanı esnek olacak, kalan boşluğu kaplayacak */
+        .card-container {
+            flex: 1; /* Kalan tüm yüksekliği al */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Taşan içeriği gizle (kartın içinde scroll olacak) */
+            margin-bottom: 20px; /* Butonlarla ara boşluk */
+            min-height: 0; /* Flexbox bug fix */
+        }
 
         .card {
             background: var(--bg-card); border: 1px solid var(--border-subtle);
-            width: 100%; max-width: 600px; min-height: 350px;
-            border-radius: 20px; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7); position: relative;
+            border-radius: 20px; padding: 30px; 
+            display: flex; flex-direction: column;
+            height: 100%; /* Konteynerin tamamını kapla */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            box-sizing: border-box;
         }
-        .card-meta { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;}
+
+        .card-meta { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; flex-shrink: 0; }
         .badge { color: var(--accent-primary); font-size: 0.9rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
         .stars { color: #d4af37; text-shadow: 0 0 5px rgba(212, 175, 55, 0.3); }
-        .card-text { font-size: 1.3rem; line-height: 1.6; color: #dacfb8; flex: 1; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; }
+
+        /* Metin alanı kendi içinde kayacak */
+        .card-text {
+            font-size: 1.4rem; line-height: 1.6; color: #dacfb8;
+            flex: 1; /* Kartın kalan kısmını kapla */
+            overflow-y: auto; /* SADECE METİN KAYDIRILSIN */
+            white-space: pre-wrap; word-wrap: break-word;
+            padding-right: 5px;
+        }
         .card-text b { color: #fff; font-weight: 700; }
 
-        /* BUTONLAR */
-        .action-bar { margin-top: 40px; display: flex; gap: 20px; justify-content: center; }
+        /* --- SABİT BUTONLAR --- */
+        .action-bar {
+            flex-shrink: 0; /* Küçülmesine izin verme */
+            display: flex; gap: 20px; justify-content: center;
+            padding-bottom: 20px; /* En alt boşluk */
+        }
+
         .btn-icon {
-            width: 60px; height: 60px; border-radius: 50%;
-            background: var(--bg-card); border: 1px solid var(--border-subtle);
-            color: var(--accent-primary); font-size: 1.5rem; cursor: pointer;
+            width: 65px; height: 65px; border-radius: 20px; /* Hafif karemsi */
+            border: 1px solid var(--border-subtle);
+            font-size: 1.5rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: var(--transition); box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: var(--accent-primary); /* Varsayılan ikon rengi (Gold) */
         }
-        .btn-icon:hover { background: var(--accent-primary); color: #000; transform: translateY(-3px); box-shadow: 0 0 20px var(--accent-glow); }
-
-        /* LISTELER */
-        .tag-list-label { font-size: 0.8rem; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 15px; font-weight: 700; text-transform: uppercase; }
-        .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .tag-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 5px; cursor: pointer;
-            font-weight: 700; font-size: 1.1rem; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.03);
+        
+        /* 1. RASTGELE BUTONU (ZAR) */
+        .btn-random {
+            background-color: #f0fff0; /* İstenen: Honeydew */
+            border-color: #f0fff0;
         }
-        .tag-item:hover { transform: translateX(5px); }
-        .tag-options { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; opacity: 0; transition: 0.2s; }
-        .tag-item:hover .tag-options { opacity: 1; }
+        .btn-random svg { stroke: var(--accent-primary); stroke-width: 1.5; } /* İkon rengi korundu */
+        
+        /* 2. DÜZENLE BUTONU */
+        .btn-edit {
+            background-color: #fff0f5; /* LavenderBlush - Uyumlu soft renk */
+            border-color: #fff0f5;
+        }
+        
+        /* 3. EKLE BUTONU */
+        .btn-add {
+            background-color: #f0f8ff; /* AliceBlue - Uyumlu soft renk */
+            border-color: #f0f8ff;
+        }
 
-        .btn-new { background: transparent; border: 1px dashed var(--text-muted); color: var(--text-muted); padding: 12px; width: 100%; border-radius: var(--radius-lg); cursor: pointer; margin-bottom: 20px; font-weight: 600; transition: 0.2s; font-family: inherit; }
-        .btn-new:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn-icon:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); filter: brightness(0.95); }
+        .btn-icon:active { transform: scale(0.95); }
 
-        /* MODALS */
+        /* FILTER INDICATOR */
+        .filter-status {
+            text-align: center; color: var(--accent-primary); font-size: 0.8rem;
+            margin-bottom: 5px; height: 20px;
+        }
+
+        /* MODALS (Değişmedi) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-box { background: #111; border: 1px solid var(--border-subtle); padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
-
-        /* RICH TEXT TOOLBAR */
+        .modal-box { background: #111; border: 1px solid var(--border-subtle); padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; box-shadow: 0 0 50px rgba(0,0,0,0.9); display:flex; flex-direction:column; max-height:85vh; }
+        
         .toolbar { display: flex; gap: 5px; margin-bottom: 10px; background: #1a1a1a; padding: 8px; border-radius: 8px; flex-wrap: wrap; }
-        .tool-btn { background: #333; border: none; color: #aaa; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; }
+        .tool-btn { background: #333; border: none; color: #aaa; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .tool-btn:hover { background: var(--accent-primary); color: #000; }
-        .color-picker { width: 30px; height: 30px; border: none; background: none; cursor: pointer; padding: 0;}
-
-        .editor-area {
-            width: 100%; min-height: 150px; max-height: 300px; background: #080808; border: 1px solid #333; color: var(--text-main); 
-            padding: 15px; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; overflow-y: auto; font-family: inherit; font-size: 1.1rem;
-        }
-        .editor-area:focus { outline: none; border-color: var(--accent-primary); }
-
+        
+        .editor-area { width: 100%; flex:1; min-height: 150px; background: #080808; border: 1px solid #333; color: var(--text-main); padding: 15px; border-radius: 8px; margin-bottom: 15px; overflow-y: auto; font-family: inherit; font-size: 1.1rem; }
+        
         select, input[type="text"] { width: 100%; background: #080808; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
         .btn-modal { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-family: inherit; font-size: 1rem; }
         .btn-save { background: var(--accent-primary); color: #000; }
         .btn-cancel { background: transparent; color: #666; }
 
-        /* TOAST */
-        .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--accent-primary); color: #000; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 200;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: 0.3s;
-        }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent-primary); color: #000; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
         .toast.show { opacity: 1; bottom: 50px; }
-
     </style>
 </head>
 <body>
 
     <button class="menu-trigger" onclick="toggleSidebar()">☰</button>
     <button class="settings-trigger" onclick="openSettingsModal()">⚙️</button>
-    
     <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar">
+        <div class="btn-all-notes" onclick="resetFilter()">
+            ∞ TÜM NOTLAR
+        </div>
+
+        <div class="sidebar-section-title">KATEGORİLER</div>
+        <div id="sidebar-tag-list"></div>
         <button class="btn-new" onclick="openNewTagModal()">+ YENİ KATEGORİ</button>
-        <div class="tag-list-label">KATEGORİLER</div>
-        <div class="scroll-area" id="sidebar-tag-list"></div>
-        <div style="font-size:0.7rem; color:#444; text-align:center; margin-top:20px;" id="status-text">OFFLINE</div>
+
+        <div class="sidebar-section-title">ÖNEM DERECESİ</div>
+        <div id="sidebar-rating-list">
+            <div class="rating-filter-item" onclick="filterByRating(5)">
+                <span class="rating-stars">★★★★★</span> <span>Çok Yüksek</span>
+            </div>
+            <div class="rating-filter-item" onclick="filterByRating(4)">
+                <span class="rating-stars">★★★★☆</span> <span>Yüksek</span>
+            </div>
+            <div class="rating-filter-item" onclick="filterByRating(3)">
+                <span class="rating-stars">★★★☆☆</span> <span>Orta</span>
+            </div>
+            <div class="rating-filter-item" onclick="filterByRating(2)">
+                <span class="rating-stars">★★☆☆☆</span> <span>Düşük</span>
+            </div>
+            <div class="rating-filter-item" onclick="filterByRating(1)">
+                <span class="rating-stars">★☆☆☆☆</span> <span>Çok Düşük</span>
+            </div>
+        </div>
+
+        <div style="font-size:0.7rem; color:#444; text-align:center; margin-top:auto; padding-top:20px;" id="status-text">OFFLINE</div>
     </aside>
 
     <main>
-        <div class="card" id="card">
-            <div class="card-meta">
-                <span class="badge" id="d-tag">IMP NOTES</span>
-                <span class="stars" id="d-stars">★★★☆☆</span>
+        <div class="filter-status" id="filter-status-text"></div>
+
+        <div class="card-container">
+            <div class="card" id="card">
+                <div class="card-meta">
+                    <span class="badge" id="d-tag">IMP NOTES</span>
+                    <span class="stars" id="d-stars">★★★☆☆</span>
+                </div>
+                <div class="card-text" id="d-text">
+                    Başlatılıyor...
+                </div>
             </div>
-            <div class="card-text" id="d-text">Başlatılıyor...</div>
         </div>
 
         <div class="action-bar">
-            <button class="btn-icon" onclick="openEditModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-            <button class="btn-icon" onclick="showRandom()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg></button>
-            <button class="btn-icon" onclick="openAddNoteModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+            <button class="btn-icon btn-edit" onclick="openEditModal()" title="Düzenle">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            
+            <button class="btn-icon btn-random" onclick="showRandom()" title="Rastgele Getir">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"></circle>
+                    <circle cx="16.5" cy="16.5" r="1.5" fill="currentColor"></circle>
+                    <circle cx="16.5" cy="7.5" r="1.5" fill="currentColor"></circle>
+                    <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor"></circle>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                </svg>
+            </button>
+            
+            <button class="btn-icon btn-add" onclick="openAddNoteModal()" title="Not Ekle">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
         </div>
     </main>
 
@@ -162,9 +292,9 @@
     <div class="modal-overlay" id="modal-settings">
         <div class="modal-box">
             <h3>Ayarlar</h3>
-            <p style="font-size:0.9rem; color:#888;">Google Script URL'nizi buraya yapıştırın. Bu ayar cihazınızda saklanır.</p>
-            <input type="text" id="settings-url" placeholder="https://script.google.com/...">
-            <button class="btn-modal btn-save" onclick="saveSettings()">AYARLARI KAYDET</button>
+            <p style="font-size:0.9rem; color:#888;">Google Script URL:</p>
+            <input type="text" id="settings-url">
+            <button class="btn-modal btn-save" onclick="saveSettings()">KAYDET</button>
             <button class="btn-modal btn-cancel" onclick="closeModal('modal-settings')">Kapat</button>
         </div>
     </div>
@@ -187,11 +317,6 @@
     <div class="modal-overlay" id="modal-edit">
         <div class="modal-box">
             <h3>Düzenle</h3>
-            <div class="toolbar">
-                <button class="tool-btn" onclick="execCmd('bold')">B</button>
-                <button class="tool-btn" onclick="execCmd('italic')">I</button>
-                <input type="color" class="color-picker" onchange="execCmd('foreColor', this.value)">
-            </div>
             <div class="editor-area" id="edit-editor" contenteditable="true"></div>
             <select id="edit-tag-select"></select>
             <div style="display:flex; justify-content:center; gap:5px; margin-bottom:15px;">
@@ -205,7 +330,7 @@
     <div class="modal-overlay" id="modal-new-tag">
         <div class="modal-box">
             <h3>Yeni Kategori</h3>
-            <input type="text" id="new-tag-name" placeholder="Kategori İsmi">
+            <input type="text" id="new-tag-name">
             <button class="btn-modal btn-save" onclick="createTag()">OLUŞTUR</button>
             <button class="btn-modal btn-cancel" onclick="closeModal('modal-new-tag')">İptal</button>
         </div>
@@ -213,8 +338,8 @@
 
     <div class="modal-overlay" id="modal-tag-options">
         <div class="modal-box">
-            <h3>Kategori: <span id="opt-tag-name" style="color:var(--accent-primary)"></span></h3>
-            <button class="btn-modal btn-save" onclick="openRenameFromOptions()">Yeniden Adlandır</button>
+            <h3>Kategori: <span id="opt-tag-name"></span></h3>
+            <button class="btn-modal btn-save" onclick="openRenameFromOptions()">Adını Değiştir</button>
             <button class="btn-modal btn-cancel" style="color:#8a3b3b; border:1px solid #8a3b3b;" onclick="runDeleteTag()">Sil</button>
             <button class="btn-modal btn-cancel" onclick="closeModal('modal-tag-options')">Vazgeç</button>
         </div>
@@ -230,20 +355,24 @@
     </div>
 
 <script>
-    // --- AKILLI CONFIG (TARAYICI HAFIZASI) ---
-    // Kodda URL yok! Tarayıcıdan alacak.
     let GOOGLE_SCRIPT_URL = localStorage.getItem('imp_app_url');
-
     let notes = [];
-    let tags = ["Genel", "Önemli", "Fikirler"];
+    let tags = [];
     let currentIndex = -1;
     let targetTagForOptions = "";
+    
+    // FİLTRELEME SİSTEMİ
+    // filterType: 'all', 'tag', 'rating'
+    // filterValue: null, 'Felsefe', 5
+    let currentFilter = { type: 'all', value: null };
+
+    // RENK PALETİ (Kategoriler için)
+    const tagColors = ["#808000", "#8b4513", "#4682b4", "#ff6347", "#556b2f", "#cd853f", "#2e8b57", "#a0522d"];
 
     window.onload = function() {
         if(!GOOGLE_SCRIPT_URL) {
-            // İlk açılışta URL yoksa Ayarlar'ı aç
             openSettingsModal();
-            document.getElementById('d-text').innerText = "Lütfen sağ üstteki çark ikonuna basarak Google Script URL'nizi girin.";
+            document.getElementById('d-text').innerText = "Lütfen Ayarlardan (⚙️) Google URL'nizi girin.";
         } else {
             fetchNotes(); 
         }
@@ -253,28 +382,76 @@
     function execCmd(cmd, val=null) { document.execCommand(cmd, false, val); }
     function showToast(msg) { const t=document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>{t.classList.remove('show')},3000); }
 
-    // --- AYARLAR YÖNETİMİ ---
-    function openSettingsModal() {
-        document.getElementById('settings-url').value = localStorage.getItem('imp_app_url') || "";
-        openModal('modal-settings');
+    // --- FİLTRELEME MANTIĞI ---
+    function resetFilter() {
+        currentFilter = { type: 'all', value: null };
+        document.getElementById('filter-status-text').innerText = "";
+        toggleSidebar();
+        showRandom();
+        showToast("Tüm Notlar Gösteriliyor");
     }
 
-    function saveSettings() {
-        const url = document.getElementById('settings-url').value.trim();
-        if(url) {
-            localStorage.setItem('imp_app_url', url);
-            GOOGLE_SCRIPT_URL = url;
-            closeModal('modal-settings');
-            fetchNotes(); // Yeni URL ile verileri çek
-            showToast("Ayarlar Kaydedildi");
+    function filterByTag(tagName) {
+        currentFilter = { type: 'tag', value: tagName };
+        document.getElementById('filter-status-text').innerText = "Filtre: " + tagName;
+        toggleSidebar();
+        showRandom();
+    }
+
+    function filterByRating(rating) {
+        currentFilter = { type: 'rating', value: rating };
+        document.getElementById('filter-status-text').innerText = "Filtre: " + rating + " Yıldız";
+        toggleSidebar();
+        showRandom();
+    }
+
+    function getFilteredNotes() {
+        if (currentFilter.type === 'tag') {
+            return notes.filter(n => n.tag === currentFilter.value);
+        } else if (currentFilter.type === 'rating') {
+            return notes.filter(n => parseInt(n.rating) === currentFilter.value);
+        } else {
+            return notes; // All
         }
     }
 
-    // --- DATA FETCH ---
+    // --- RASTGELE NOT GETİR ---
+    function showRandom() {
+        const filtered = getFilteredNotes();
+        
+        if(filtered.length === 0) {
+            if(notes.length === 0) {
+                document.getElementById('d-text').innerText = "Henüz hiç notun yok.";
+            } else {
+                document.getElementById('d-text').innerText = "Bu filtreye uygun not bulunamadı.";
+                document.getElementById('d-tag').innerText = "-";
+                document.getElementById('d-stars').innerText = "";
+            }
+            return;
+        }
+
+        const card = document.getElementById('card');
+        card.style.opacity = 0; card.style.transform = "scale(0.98)";
+        
+        setTimeout(() => {
+            const randomNote = filtered[Math.floor(Math.random() * filtered.length)];
+            currentIndex = notes.indexOf(randomNote); // Ana dizideki indeksi bul (düzenleme için)
+            displayNote(randomNote);
+            card.style.opacity = 1; card.style.transform = "scale(1)";
+        }, 150);
+    }
+
+    function displayNote(n) {
+        document.getElementById('d-text').innerHTML = n.text; 
+        document.getElementById('d-tag').innerText = n.tag || 'IMP';
+        const r = parseInt(n.rating || 0);
+        document.getElementById('d-stars').innerText = '★'.repeat(r) + '☆'.repeat(5-r);
+    }
+
+    // --- DATA ---
     async function fetchNotes() {
         if(!GOOGLE_SCRIPT_URL) return;
         try {
-            document.getElementById('status-text').innerText = "BAĞLANIYOR...";
             const res = await fetch(GOOGLE_SCRIPT_URL);
             const data = await res.json();
             if(Array.isArray(data)) {
@@ -287,7 +464,6 @@
             }
         } catch(e) { 
             document.getElementById('status-text').innerText = "OFFLINE"; 
-            showToast("Bağlantı Hatası: URL'yi kontrol edin");
         }
     }
 
@@ -299,28 +475,30 @@
         } catch(e) { showToast("Kayıt Hatası!"); }
     }
 
-    // --- TAGS & UI ---
-    function stringToColor(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-        return '#' + "00000".substring(0, 6 - c.length) + c;
-    }
+    // --- SIDEBAR TAGS ---
     function extractTagsFromNotes() {
-        const foundTags = new Set(tags);
+        const foundTags = new Set(["Genel", "Önemli", "Fikirler"]); // Varsayılanlar
         notes.forEach(n => { if(n.tag) foundTags.add(n.tag); });
         tags = Array.from(foundTags).sort();
     }
+
     function renderSidebar() {
         const container = document.getElementById('sidebar-tag-list'); container.innerHTML = '';
-        tags.forEach(tag => {
-            const color = stringToColor(tag+"salt");
-            const div = document.createElement('div'); div.className = 'tag-item';
-            div.innerHTML = `<span class="tag-text" onclick="filterByTag('${tag}')" style="color:${color}">${tag}</span><button class="tag-options" onclick="openTagOptionsModal('${tag}')">⋮</button>`;
+        tags.forEach((tag, index) => {
+            // İstenen renklerden sırayla seç
+            const color = tagColors[index % tagColors.length];
+            
+            const div = document.createElement('div');
+            div.className = 'tag-item';
+            div.innerHTML = `
+                <span class="tag-text" onclick="filterByTag('${tag}')" style="color:${color}">${tag}</span>
+                <button class="tag-options" onclick="openTagOptionsModal('${tag}')">⋮</button>
+            `;
             container.appendChild(div);
         });
         updateSelects();
     }
+
     function updateSelects() {
         const fill = (id) => {
             const el = document.getElementById(id); el.innerHTML = '';
@@ -329,33 +507,19 @@
         fill('add-tag-select'); fill('edit-tag-select');
     }
 
-    // --- NOTE LOGIC ---
-    function filterByTag(tagName) {
-        const filtered = notes.filter(n => n.tag === tagName);
-        if(filtered.length===0) { showToast("Bu kategoride not yok"); return; }
-        toggleSidebar();
-        const r = filtered[Math.floor(Math.random() * filtered.length)];
-        currentIndex = notes.indexOf(r);
-        displayNote(r);
-    }
-    function showRandom() {
-        if(notes.length===0) return;
-        const card = document.getElementById('card'); card.style.opacity=0; card.style.transform="scale(0.95)";
-        setTimeout(()=>{
-            currentIndex = Math.floor(Math.random() * notes.length);
-            displayNote(notes[currentIndex]);
-            card.style.opacity=1; card.style.transform="scale(1)";
-        },200);
-    }
-    function displayNote(n) {
-        document.getElementById('d-text').innerHTML = n.text;
-        document.getElementById('d-tag').innerText = n.tag || 'IMP';
-        const r = parseInt(n.rating || 0);
-        document.getElementById('d-stars').innerText = '★'.repeat(r) + '☆'.repeat(5-r);
+    // --- SETTINGS ---
+    function openSettingsModal() { document.getElementById('settings-url').value = localStorage.getItem('imp_app_url') || ""; document.getElementById('modal-settings').style.display='flex'; }
+    function saveSettings() {
+        const url = document.getElementById('settings-url').value.trim();
+        if(url) {
+            localStorage.setItem('imp_app_url', url); GOOGLE_SCRIPT_URL = url;
+            closeModal('modal-settings'); fetchNotes(); showToast("Ayarlar Kaydedildi");
+        }
     }
 
-    // --- ADD / EDIT ---
-    function openAddNoteModal() { openModal('modal-add'); document.getElementById('add-editor').innerHTML=""; }
+    // --- ADD / EDIT LOGIC ---
+    function openAddNoteModal() { document.getElementById('modal-add').style.display='flex'; document.getElementById('add-editor').innerHTML=""; }
+    
     function runAddNote() {
         const rawContent = document.getElementById('add-editor').innerText;
         const htmlContent = document.getElementById('add-editor').innerHTML;
@@ -366,7 +530,6 @@
         const starRegex = /(^|\n)\s*\*+/;
         
         if (starRegex.test(rawContent)) {
-            // Toplu Mod
             const parts = rawContent.split(/(^|\n)\s*(?=\*)/g); 
             parts.forEach(part => {
                 let cleanPart = part.trim();
@@ -379,7 +542,6 @@
                 }
             });
         } else {
-            // Tekli Mod
             newNotes.push({ text: htmlContent, tag: tag, rating: 1 });
         }
         
@@ -387,7 +549,7 @@
 
         notes = [...notes, ...newNotes];
         closeModal('modal-add');
-        saveToGoogle(notes).then(() => { showToast(newNotes.length + " Not Eklendi!"); });
+        saveToGoogle(notes).then(() => { showToast(newNotes.length + " Not Eklendi!"); showRandom(); });
     }
 
     function openEditModal() {
@@ -396,8 +558,9 @@
         document.getElementById('edit-editor').innerHTML = n.text;
         document.getElementById('edit-tag-select').value = n.tag;
         document.getElementById('edit-rating').value = n.rating || 0;
-        openModal('modal-edit');
+        document.getElementById('modal-edit').style.display='flex';
     }
+    
     function saveEdit() {
         const txt = document.getElementById('edit-editor').innerHTML;
         const tag = document.getElementById('edit-tag-select').value;
@@ -408,7 +571,7 @@
     }
 
     // --- TAG ACTIONS ---
-    function openNewTagModal() { openModal('modal-new-tag'); }
+    function openNewTagModal() { document.getElementById('modal-new-tag').style.display='flex'; }
     function createTag() {
         const name = document.getElementById('new-tag-name').value.trim();
         if(name && !tags.includes(name)) {
@@ -416,16 +579,18 @@
             closeModal('modal-new-tag'); document.getElementById('new-tag-name').value='';
         }
     }
-    function openTagOptionsModal(tagName) { targetTagForOptions = tagName; document.getElementById('opt-tag-name').innerText=tagName; openModal('modal-tag-options'); }
-    function openRenameFromOptions() { closeModal('modal-tag-options'); document.getElementById('rename-tag-input').value=targetTagForOptions; openModal('modal-rename-tag'); }
+    function openTagOptionsModal(tagName) { targetTagForOptions = tagName; document.getElementById('opt-tag-name').innerText=tagName; document.getElementById('modal-tag-options').style.display='flex'; }
+    function openRenameFromOptions() { closeModal('modal-tag-options'); document.getElementById('rename-tag-input').value=targetTagForOptions; document.getElementById('modal-rename-tag').style.display='flex'; }
+    
     function runDeleteTag() {
-        if(confirm("Emin misin?")) {
+        if(confirm("Silmek istediğine emin misin?")) {
             notes.forEach(n => { if(n.tag === targetTagForOptions) n.tag = "Genel"; });
             tags = tags.filter(t => t !== targetTagForOptions);
             renderSidebar(); closeModal('modal-tag-options');
             saveToGoogle(notes).then(()=>showToast("Kategori Silindi"));
         }
     }
+    
     function runRenameTag() {
         const newName = document.getElementById('rename-tag-input').value.trim();
         if(!newName) return;
@@ -435,9 +600,9 @@
         saveToGoogle(notes).then(()=>showToast("Yeniden Adlandırıldı"));
     }
 
-    function openModal(id) { document.getElementById(id).style.display='flex'; }
     function closeModal(id) { document.getElementById(id).style.display='none'; }
     window.onclick = function(e) { if(e.target.classList.contains('modal-overlay')) e.target.style.display='none'; }
+
 </script>
 </body>
 </html>
