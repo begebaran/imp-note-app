@@ -4,381 +4,319 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>IMP Note App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* --- GEMINI COLOR TOKENS --- */
-            --bg-body: #131314;       /* Ana Arka Plan */
-            --bg-surface: #1E1F20;    /* Kart / Menü Zemini */
-            --bg-surface-hover: #28292a;
+            /* --- RENK PALETİ --- */
+            --bg-body: #0c0b0b;
+            --bg-card: #141313;
+            --border-subtle: rgba(194, 178, 128, 0.2);
             
-            --primary-blue: #A8C7FA;  /* Gemini Mavisi (Accent) */
-            --primary-text: #E3E3E3;  /* Ana Metin */
-            --secondary-text: #C4C7C5;/* Yan Metin */
+            --accent-primary: #C2B280; /* Gold */
+            --accent-soft: #f0fff0;   /* Zar Butonu Rengi */
             
-            --border-color: #444746;
-            --radius-md: 12px;
-            --radius-full: 50px;
+            --text-main: #e0d8c3;
+            --text-muted: #757065;
             
-            --sidebar-width: 300px;
-            --bottom-safe-area: env(safe-area-inset-bottom, 20px);
+            --font-display: 'Rajdhani', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            
+            --sidebar-width: 280px;
+            --bottom-safe: env(safe-area-inset-bottom, 20px);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-body);
-            color: var(--primary-text);
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            height: 100dvh; /* Dynamic Height for Mobile */
-            display: flex;
-            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 0%, #1f1c18 0%, #0c0b0b 70%);
+            color: var(--text-main); font-family: var(--font-body);
+            margin: 0; height: 100dvh; overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        /* --- MENÜ TETİKLEYİCİ (SOL ÜST) --- */
-        .menu-toggle-btn {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            z-index: 40;
-            background: transparent;
-            border: none;
-            color: var(--secondary-text);
-            padding: 8px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: 0.2s;
+        /* --- UI ELEMENTS --- */
+        .menu-trigger, .settings-trigger {
+            position: absolute; top: 16px; z-index: 60; background: transparent; border: none;
+            color: var(--accent-primary); font-size: 1.8rem; cursor: pointer; padding: 10px;
         }
-        .menu-toggle-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--primary-text); }
-        .menu-toggle-btn svg { width: 24px; height: 24px; display: block; }
-        
-        /* Menü açılınca bu buton gizlenecek */
-        .menu-toggle-btn.hidden { opacity: 0; pointer-events: none; }
+        .menu-trigger { left: 16px; }
+        .settings-trigger { right: 16px; color: var(--text-muted); font-size: 1.4rem; }
 
-        /* --- AYARLAR (SAĞ ÜST) --- */
-        .settings-btn {
-            position: absolute; top: 16px; right: 16px; z-index: 40;
-            background: transparent; border: none; color: var(--secondary-text);
-            cursor: pointer; padding: 8px; border-radius: 50%;
-        }
-        .settings-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--primary-text); }
-
-        /* --- SIDEBAR (SOL MENÜ) --- */
+        /* SIDEBAR */
         aside {
             position: fixed; top: 0; left: 0; height: 100%; width: var(--sidebar-width);
-            background-color: var(--bg-surface); /* Gemini Sidebar Rengi */
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 100;
-            display: flex; flex-direction: column;
-            padding: 20px;
-            border-right: 1px solid rgba(0,0,0,0.5);
+            background: rgba(12, 11, 11, 0.98); border-right: 1px solid var(--border-subtle);
+            transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100; display: flex; flex-direction: column; padding: 80px 20px 20px 20px;
         }
-        aside.open { transform: translateX(0); }
-
-        .sidebar-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 30px;
-            padding-left: 10px;
-        }
-        .brand-title { font-size: 1.2rem; font-weight: 500; color: var(--primary-text); }
-        
-        /* Sidebar Kapatma Butonu (İçeride) */
-        .close-sidebar-btn {
-            background: transparent; border: none; color: var(--secondary-text); cursor: pointer; padding: 5px;
-        }
-
-        .scroll-area { flex: 1; overflow-y: auto; margin-bottom: 20px; }
-        
-        /* Menü Elemanları */
-        .menu-label { font-size: 0.75rem; font-weight: 500; color: var(--secondary-text); margin: 20px 0 10px 10px; }
-
-        .menu-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px;
-            border-radius: var(--radius-full);
-            color: var(--primary-text);
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.95rem;
-            margin-bottom: 4px;
-        }
-        .menu-item:hover { background-color: var(--bg-surface-hover); }
-        .menu-item.active { background-color: #38455e; color: var(--primary-blue); font-weight: 500; }
-        
-        .tag-options-btn { margin-left: auto; background: none; border: none; color: var(--secondary-text); cursor: pointer; opacity: 0; }
-        .menu-item:hover .tag-options-btn { opacity: 1; }
-
-        .btn-new-tag {
-            background: transparent; color: var(--primary-blue); border: none;
-            padding: 10px 16px; text-align: left; font-weight: 500; cursor: pointer;
-            border-radius: var(--radius-full); margin-top: 5px;
-        }
-        .btn-new-tag:hover { background: rgba(168, 199, 250, 0.1); }
-
-        /* BACKDROP */
+        aside.open { transform: translateX(0); box-shadow: 10px 0 50px rgba(0,0,0,0.8); }
         .backdrop {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 90;
-            display: none; opacity: 0; transition: opacity 0.3s;
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6);
+            z-index: 90; display: none; opacity: 0; transition: opacity 0.3s;
         }
         .backdrop.show { display: block; opacity: 1; }
 
+        /* SIDEBAR ITEMS */
+        .sidebar-label { font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 2px; color: var(--text-muted); margin: 20px 0 10px 0; font-weight: 700; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .btn-sidebar-action { background: rgba(255,255,255,0.05); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; border: 1px solid var(--border-subtle); text-align: left; margin-bottom: 5px; transition: 0.2s; font-family: var(--font-display); font-size: 1rem; }
+        .btn-sidebar-action:hover { background: var(--accent-primary); color: #000; }
+        
+        .tag-item { display: flex; justify-content: space-between; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; }
+        .tag-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
+        .tag-options { background: none; border: none; color: #666; cursor: pointer; opacity: 0; }
+        .tag-item:hover .tag-options { opacity: 1; }
 
-        /* --- ANA EKRAN (MAIN) --- */
-        main {
-            flex: 1;
-            display: flex; flex-direction: column;
-            width: 100%; height: 100%;
-            padding: 70px 20px 0 20px; /* Üstten boşluk */
-        }
-
-        /* ORTA ALAN (SCROLL EDİLEBİLİR KART) */
-        .content-wrapper {
-            flex: 1;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
+        /* MAIN CONTENT */
+        main { flex: 1; display: flex; flex-direction: column; padding: 70px 20px 0 20px; width: 100%; max-width: 700px; margin: 0 auto; }
+        
+        .card-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
         .card {
-            background-color: transparent; /* Gemini tarzı: Kart yok, düz metin */
-            width: 100%; max-width: 700px;
-            display: flex; flex-direction: column; gap: 15px;
+            background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px;
+            padding: 30px; display: flex; flex-direction: column; height: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6); position: relative;
+        }
+        .card-meta { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .badge { color: var(--accent-primary); font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .stars-display { color: #d4af37; letter-spacing: 2px; }
+        .card-text { font-size: 1.25rem; line-height: 1.6; color: #dacfb8; flex: 1; overflow-y: auto; white-space: pre-wrap; }
+        .card-text b { color: #fff; font-weight: 700; }
+
+        /* FIXED BOTTOM ACTIONS */
+        .bottom-actions {
+            flex-shrink: 0; display: flex; justify-content: center; gap: 20px;
+            padding-bottom: calc(20px + var(--bottom-safe));
+        }
+        .btn-icon {
+            width: 60px; height: 60px; border-radius: 18px; border: 1px solid var(--border-subtle);
+            font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); color: #333;
+        }
+        .btn-icon:active { transform: scale(0.95); }
+
+        /* BUTTON COLORS */
+        .btn-edit { background-color: #fce4ec; color: #880e4f; } /* Soft Pink */
+        .btn-add  { background-color: #e3f2fd; color: #0d47a1; } /* Soft Blue */
+        
+        /* ZAR BUTONU (Rastgele) */
+        .btn-random { background-color: #f0fff0; color: #1b5e20; } /* Honeydew */
+        
+        /* --- RICH TEXT EDITOR (MacOS TextEdit Style) --- */
+        .editor-container {
+            display: flex; flex-direction: column; height: 100%; gap: 10px;
         }
         
-        .card-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .badge {
-            background: #2c2c2e; color: var(--secondary-text);
-            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500;
+        .rich-toolbar {
+            display: flex; gap: 5px; background: #222; padding: 8px; border-radius: 10px; flex-wrap: wrap; align-items: center; border: 1px solid #333;
         }
-        .stars { color: #FSDD82; letter-spacing: 2px; font-size: 0.9rem; }
-
-        .card-text {
-            font-size: 1.15rem; line-height: 1.7; color: var(--primary-text);
-            white-space: pre-wrap; font-weight: 400;
+        
+        .rt-btn {
+            background: #333; border: none; color: #ccc; width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+            font-family: serif; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
         }
+        .rt-btn:hover { background: var(--accent-primary); color: #000; }
+        .rt-btn svg { width: 18px; height: 18px; }
 
-        /* --- ALT AKSİYON BUTONLARI (FIXED BOTTOM) --- */
-        .bottom-actions {
-            flex-shrink: 0;
-            width: 100%;
-            display: flex; justify-content: center; gap: 15px;
-            padding-bottom: calc(20px + var(--bottom-safe-area)); /* SAFARI FIX */
-            background: linear-gradient(to top, var(--bg-body) 80%, transparent); /* Fade effect */
+        .color-input-wrapper {
+            width: 32px; height: 32px; border-radius: 50%; overflow: hidden; border: 2px solid #444; cursor: pointer;
         }
+        input[type="color"] { width: 150%; height: 150%; transform: translate(-25%, -25%); border: none; cursor: pointer; }
 
-        /* GEMINI SEND BUTTON STYLE */
-        .action-btn {
-            background-color: var(--bg-surface);
-            color: var(--primary-text);
-            border: none;
-            height: 50px;
-            padding: 0 24px;
-            border-radius: var(--radius-full);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-size: 0.9rem; font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
+        .editor-canvas {
+            flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+            padding: 15px; color: #eee; font-size: 1.1rem; line-height: 1.5; overflow-y: auto; outline: none;
+            min-height: 150px;
         }
-        .action-btn:hover { background-color: var(--bg-surface-hover); }
-        .action-btn:active { transform: scale(0.97); }
+        .editor-canvas:focus { border-color: var(--accent-primary); }
 
-        /* Rastgele Butonu (Primary - Dolu Renk) */
-        .btn-primary-action {
-            background-color: var(--primary-text); /* Beyaz/Gri Dolgu */
-            color: var(--bg-body); /* Koyu Yazı */
+        /* --- VISUAL STAR RATING (Interactive) --- */
+        .star-rating-interactive {
+            display: flex; justify-content: center; gap: 8px; margin: 15px 0;
         }
-        .btn-primary-action:hover { background-color: #c4c7c5; }
+        .star-btn {
+            background: none; border: none; font-size: 2rem; color: #444; cursor: pointer; transition: 0.2s; line-height: 1; padding: 0;
+        }
+        .star-btn.active { color: #d4af37; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+        .star-btn:hover { transform: scale(1.2); }
 
-
-        /* --- MODALLER (MATERIAL STYLE) --- */
+        /* MODALS */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
         .modal-box {
-            background: #2b2c2e; /* Daha açık gri */
-            width: 90%; max-width: 500px; border-radius: 24px; padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; max-height: 80vh;
+            background: #111; border: 1px solid var(--border-subtle); padding: 25px;
+            border-radius: 20px; width: 90%; max-width: 500px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            max-height: 85vh;
         }
-        
-        .modal-title { margin: 0 0 20px 0; font-size: 1.2rem; font-weight: 500; }
+        .modal-header { font-family: var(--font-display); font-size: 1.2rem; color: var(--accent-primary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Rich Text Toolbar */
-        .toolbar { display: flex; gap: 8px; margin-bottom: 12px; background: #1e1f20; padding: 8px; border-radius: 12px; overflow-x: auto; }
-        .tool-icon { background: transparent; border: none; color: #ccc; cursor: pointer; padding: 5px; border-radius: 4px; }
-        .tool-icon:hover { background: #444; color: white; }
-
-        .editor {
-            flex: 1; background: #1e1f20; border: none; border-radius: 12px;
-            padding: 16px; color: var(--primary-text); font-family: inherit; font-size: 1rem;
-            min-height: 150px; overflow-y: auto; margin-bottom: 20px; outline: none;
-        }
-        .editor:focus { background: #252628; }
-
-        input, select {
-            width: 100%; background: #1e1f20; border: none; padding: 14px;
-            border-radius: 12px; color: white; margin-bottom: 15px; outline: none;
+        select, input[type="text"] {
+            width: 100%; background: #222; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; outline: none;
         }
 
-        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
-        .btn-text { background: none; border: none; color: var(--primary-blue); font-weight: 500; cursor: pointer; padding: 10px 20px; border-radius: 20px; }
-        .btn-text:hover { background: rgba(168, 199, 250, 0.1); }
-        .btn-filled { background: var(--primary-blue); color: #000; border: none; font-weight: 500; cursor: pointer; padding: 10px 24px; border-radius: 20px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .btn-modal { padding: 10px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+        .btn-save { background: var(--accent-primary); color: #000; }
+        .btn-cancel { background: transparent; color: #888; }
+        .btn-cancel:hover { color: #fff; }
 
         /* TOAST */
         .toast {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: #e3e3e3; color: #000; padding: 12px 24px; border-radius: 50px;
-            font-size: 0.9rem; font-weight: 500; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 300;
+            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+            background: #fff; color: #000; padding: 10px 20px; border-radius: 50px;
+            font-weight: 600; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 300;
         }
-        .toast.show { opacity: 1; bottom: 120px; }
+        .toast.show { opacity: 1; bottom: 140px; }
 
     </style>
 </head>
 <body>
 
-    <button class="menu-toggle-btn" id="menu-trigger" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-    </button>
-    
-    <button class="settings-btn" onclick="openSettings()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-    </button>
-
+    <button class="menu-trigger" onclick="toggleSidebar()">☰</button>
+    <button class="settings-trigger" onclick="openSettings()">⚙️</button>
     <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar">
-        <div class="sidebar-header">
-            <span class="brand-title">IMP Note App</span>
-            <button class="close-sidebar-btn" onclick="toggleSidebar()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-            </button>
-        </div>
+        <div class="btn-sidebar-action" onclick="resetFilter()">∞ TÜM NOTLAR</div>
+        
+        <div class="sidebar-label">KATEGORİLER</div>
+        <div class="scroll-area" id="sidebar-tag-list" style="flex:1;"></div>
+        <div class="btn-sidebar-action" onclick="openNewTagModal()">+ YENİ KATEGORİ</div>
 
-        <div class="scroll-area">
-            <div class="menu-item" onclick="resetFilter()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
-                <span>Tüm Notlar</span>
+        <div class="sidebar-label">ÖNEM FİLTRESİ</div>
+        <div id="sidebar-rating-list">
             </div>
 
-            <div class="menu-label">KATEGORİLER</div>
-            <div id="sidebar-tag-list"></div>
-            <button class="btn-new-tag" onclick="openNewTagModal()">+ Yeni Kategori</button>
-
-            <div class="menu-label">ÖNEM DERECESİ</div>
-            <div id="sidebar-rating-list">
-                </div>
-        </div>
-        
-        <div style="font-size:0.7rem; color:#666; text-align:center;" id="status-text">OFFLINE</div>
+        <div style="font-size:0.7rem; color:#444; text-align:center; padding-top:10px;" id="status-text">OFFLINE</div>
     </aside>
 
     <main>
-        <div class="content-wrapper">
+        <div class="card-container">
             <div class="card" id="card">
                 <div class="card-meta">
                     <span class="badge" id="d-tag">IMP</span>
-                    <span class="stars" id="d-stars">★★★</span>
+                    <span class="stars-display" id="d-stars">★★★</span>
                 </div>
-                <div class="card-text" id="d-text">
-                    Sistem Başlatılıyor...
-                </div>
+                <div class="card-text" id="d-text">Sistem Başlatılıyor...</div>
             </div>
         </div>
 
         <div class="bottom-actions">
-            <button class="action-btn" onclick="openEditModal()" title="Düzenle">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <button class="btn-icon btn-edit" onclick="openEditModal()">
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
             
-            <button class="action-btn btn-primary-action" onclick="showRandom()" title="Rastgele Getir">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.22-7.52-3.22 7.52-3.22L6.5 4.86v12.64z"/></svg>
-                <span>Rastgele</span>
+            <button class="btn-icon btn-random" onclick="showRandom()">
+               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"></circle><circle cx="16.5" cy="16.5" r="1.5" fill="currentColor"></circle><circle cx="16.5" cy="7.5" r="1.5" fill="currentColor"></circle><circle cx="7.5" cy="16.5" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle></svg>
             </button>
             
-            <button class="action-btn" onclick="openAddNoteModal()" title="Ekle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <button class="btn-icon btn-add" onclick="openAddNoteModal()">
+               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
         </div>
     </main>
 
     <div class="toast" id="toast">Bilgi</div>
 
-    <div class="modal-overlay" id="modal-settings">
-        <div class="modal-box">
-            <h3 class="modal-title">Ayarlar</h3>
-            <input type="text" id="settings-url" placeholder="Google Script URL'sini yapıştır">
-            <div class="modal-btns">
-                <button class="btn-text" onclick="closeModal('modal-settings')">İptal</button>
-                <button class="btn-filled" onclick="saveSettings()">Kaydet</button>
-            </div>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="modal-add">
         <div class="modal-box">
-            <h3 class="modal-title">Not Ekle</h3>
-            <div class="toolbar">
-                <button class="tool-icon" onclick="execCmd('bold')"><b>B</b></button>
-                <button class="tool-icon" onclick="execCmd('italic')"><i>I</i></button>
-                <input type="color" onchange="execCmd('foreColor', this.value)" style="width:24px; height:24px; padding:0; border:none; background:none;">
+            <div class="modal-header">Yeni Not</div>
+            
+            <div class="rich-toolbar">
+                <button class="rt-btn" onclick="formatText('bold')"><b>B</b></button>
+                <button class="rt-btn" onclick="formatText('italic')"><i>I</i></button>
+                <button class="rt-btn" onclick="formatText('underline')"><u>U</u></button>
+                <div class="color-input-wrapper" title="Metin Rengi">
+                    <input type="color" onchange="formatText('foreColor', this.value)">
+                </div>
+                <button class="rt-btn" onclick="formatText('justifyLeft')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h12v-2H3v2zm0-4h18v-2H3v2zm0-4h12V7H3v2zm0-6v2h18V3H3z"/></svg></button>
+                <button class="rt-btn" onclick="formatText('justifyCenter')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/></svg></button>
+                <button class="rt-btn" onclick="formatText('justifyRight')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"/></svg></button>
             </div>
-            <div class="editor" id="add-editor" contenteditable="true" data-placeholder="Notunu yaz..."></div>
+
+            <div class="editor-canvas" id="add-editor" contenteditable="true" placeholder="Notunuzu buraya yazın..."></div>
+            
             <select id="add-tag-select"></select>
-            <div class="modal-btns">
-                <button class="btn-text" onclick="closeModal('modal-add')">İptal</button>
-                <button class="btn-filled" onclick="runAddNote()">Ekle</button>
+            
+            <div class="star-rating-interactive" id="add-stars-container">
+                </div>
+
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-add')">İptal</button>
+                <button class="btn-modal btn-save" onclick="runAddNote()">KAYDET</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-edit">
         <div class="modal-box">
-            <h3 class="modal-title">Düzenle</h3>
-            <div class="editor" id="edit-editor" contenteditable="true"></div>
+            <div class="modal-header">Düzenle</div>
+            
+            <div class="rich-toolbar">
+                <button class="rt-btn" onclick="formatText('bold')"><b>B</b></button>
+                <button class="rt-btn" onclick="formatText('italic')"><i>I</i></button>
+                <button class="rt-btn" onclick="formatText('underline')"><u>U</u></button>
+                <div class="color-input-wrapper">
+                    <input type="color" onchange="formatText('foreColor', this.value)">
+                </div>
+                <button class="rt-btn" onclick="formatText('justifyLeft')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h12v-2H3v2zm0-4h18v-2H3v2zm0-4h12V7H3v2zm0-6v2h18V3H3z"/></svg></button>
+                <button class="rt-btn" onclick="formatText('justifyCenter')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/></svg></button>
+            </div>
+
+            <div class="editor-canvas" id="edit-editor" contenteditable="true"></div>
             <select id="edit-tag-select"></select>
-            <input type="number" id="edit-rating" min="0" max="5" placeholder="Önem Derecesi (0-5)">
-            <div class="modal-btns">
-                <button class="btn-text" onclick="closeModal('modal-edit')">İptal</button>
-                <button class="btn-filled" onclick="saveEdit()">Güncelle</button>
+            
+            <div class="star-rating-interactive" id="edit-stars-container"></div>
+
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-edit')">İptal</button>
+                <button class="btn-modal btn-save" onclick="saveEdit()">GÜNCELLE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-box">
+            <div class="modal-header">Ayarlar</div>
+            <input type="text" id="settings-url" placeholder="Google Script URL">
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-settings')">İptal</button>
+                <button class="btn-modal btn-save" onclick="saveSettings()">KAYDET</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-new-tag">
         <div class="modal-box">
-            <h3 class="modal-title">Yeni Kategori</h3>
-            <input type="text" id="new-tag-name" placeholder="Kategori Adı">
-            <div class="modal-btns">
-                <button class="btn-text" onclick="closeModal('modal-new-tag')">İptal</button>
-                <button class="btn-filled" onclick="createTag()">Oluştur</button>
+            <div class="modal-header">Yeni Kategori</div>
+            <input type="text" id="new-tag-name" placeholder="İsim Giriniz">
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-new-tag')">İptal</button>
+                <button class="btn-modal btn-save" onclick="createTag()">OLUŞTUR</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-tag-options">
         <div class="modal-box">
-            <h3 class="modal-title" id="opt-tag-name">Seçenekler</h3>
-            <div class="modal-btns" style="flex-direction:column;">
-                <button class="btn-text" onclick="openRenameFromOptions()" style="width:100%; text-align:left;">✎ Yeniden Adlandır</button>
-                <button class="btn-text" onclick="runDeleteTag()" style="width:100%; text-align:left; color:#ff8a80;">🗑 Sil</button>
-                <button class="btn-text" onclick="closeModal('modal-tag-options')" style="width:100%; text-align:left; color:#999;">İptal</button>
+            <div class="modal-header" id="opt-tag-name">Seçenekler</div>
+            <button class="btn-sidebar-action" onclick="openRenameFromOptions()">✎ Yeniden Adlandır</button>
+            <button class="btn-sidebar-action" style="border-color:#b71c1c; color:#ffcdd2;" onclick="runDeleteTag()">🗑 Sil</button>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-tag-options')">Kapat</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-rename-tag">
         <div class="modal-box">
-            <h3 class="modal-title">Yeniden Adlandır</h3>
+            <div class="modal-header">Yeniden Adlandır</div>
             <input type="text" id="rename-tag-input">
-            <div class="modal-btns">
-                <button class="btn-text" onclick="closeModal('modal-rename-tag')">İptal</button>
-                <button class="btn-filled" onclick="runRenameTag()">Kaydet</button>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('modal-rename-tag')">İptal</button>
+                <button class="btn-modal btn-save" onclick="runRenameTag()">KAYDET</button>
             </div>
         </div>
     </div>
@@ -390,42 +328,68 @@
     let currentFilter = { type: 'all', val: null };
     let currentIndex = -1;
     let targetTagForOptions = "";
+    
+    // YILDIZ PUANI TUTUCULARI
+    let tempRatingAdd = 0;
+    let tempRatingEdit = 0;
 
-    window.onload = () => {
+    const tagColors = ["#808000", "#8b4513", "#4682b4", "#ff6347", "#556b2f", "#cd853f", "#2e8b57", "#a0522d"];
+
+    window.onload = function() {
+        renderStarSelector('add-stars-container', 'tempRatingAdd');
+        renderStarSelector('edit-stars-container', 'tempRatingEdit');
         renderRatingSidebar();
+        
         if(!GOOGLE_SCRIPT_URL) {
             openSettings();
-            document.getElementById('d-text').innerText = "Lütfen Ayarlar'dan Google URL'sini gir.";
+            document.getElementById('d-text').innerText = "Lütfen Ayarlar'dan Google URL'nizi girin.";
         } else {
-            fetchNotes();
+            fetchNotes(); 
         }
     };
 
-    /* --- UI LOGIC --- */
-    function toggleSidebar() {
-        const sb = document.getElementById('sidebar');
-        const trigger = document.getElementById('menu-trigger');
-        const bd = document.getElementById('backdrop');
-        
-        if (sb.classList.contains('open')) {
-            sb.classList.remove('open');
-            trigger.classList.remove('hidden');
-            bd.classList.remove('show');
-        } else {
-            sb.classList.add('open');
-            trigger.classList.add('hidden');
-            bd.classList.add('show');
+    /* --- UI HELPERS --- */
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('backdrop').classList.toggle('show'); }
+    function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+    
+    // RICH TEXT FORMATTER
+    function formatText(cmd, value=null) {
+        document.execCommand(cmd, false, value);
+        // Editör odağını korumak için
+        const activeEditor = document.activeElement; 
+        if(activeEditor && activeEditor.classList.contains('editor-canvas')) {
+            activeEditor.focus();
         }
     }
-    
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-    function execCmd(cmd, val=null) { document.execCommand(cmd, false, val); }
 
-    /* --- DATA & SYNC --- */
+    // STAR RATING RENDERER
+    function renderStarSelector(containerId, varName) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        for(let i=1; i<=5; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'star-btn';
+            btn.innerHTML = '★';
+            btn.onclick = () => setStar(i, varName, containerId);
+            container.appendChild(btn);
+        }
+    }
+
+    function setStar(rating, varName, containerId) {
+        // Global değişkeni güncelle
+        if(varName === 'tempRatingAdd') tempRatingAdd = rating;
+        if(varName === 'tempRatingEdit') tempRatingEdit = rating;
+
+        // UI Güncelle
+        const container = document.getElementById(containerId);
+        const stars = container.getElementsByClassName('star-btn');
+        for(let i=0; i<stars.length; i++) {
+            if(i < rating) stars[i].classList.add('active');
+            else stars[i].classList.remove('active');
+        }
+    }
+
+    /* --- DATA --- */
     async function fetchNotes() {
         if(!GOOGLE_SCRIPT_URL) return;
         try {
@@ -436,12 +400,10 @@
                 notes = data;
                 extractTags();
                 renderSidebarTags();
-                document.getElementById('status-text').innerText = "SENKRONİZE";
+                document.getElementById('status-text').innerText = "ONLINE";
                 showRandom();
             }
-        } catch(e) { 
-            document.getElementById('status-text').innerText = "BAĞLANTI YOK";
-        }
+        } catch(e) { document.getElementById('status-text').innerText = "BAĞLANTI YOK"; }
     }
 
     async function saveToGoogle(data) {
@@ -452,35 +414,43 @@
         } catch(e) { showToast("Kayıt Hatası"); }
     }
 
-    /* --- TAGS & SIDEBAR --- */
+    /* --- SIDEBAR --- */
     function extractTags() {
         const s = new Set(["Genel", "Önemli", "Fikirler"]);
         notes.forEach(n => { if(n.tag) s.add(n.tag); });
         tags = Array.from(s).sort();
     }
     
+    function stringToColor(str) {
+        let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + "00000".substring(0, 6 - c.length) + c;
+    }
+
     function renderSidebarTags() {
         const c = document.getElementById('sidebar-tag-list'); c.innerHTML = '';
-        tags.forEach(t => {
+        tags.forEach((t, i) => {
             const div = document.createElement('div');
-            div.className = 'menu-item';
+            div.className = 'tag-item';
+            const color = tagColors[i % tagColors.length];
+            div.style.borderLeft = `4px solid ${color}`;
             div.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-                <span style="flex:1">${t}</span>
-                <button class="tag-options-btn" onclick="event.stopPropagation(); openTagOptions('${t}')">⋮</button>
+                <span class="tag-text" style="color:${color}; margin-left:10px;">${t}</span>
+                <button class="tag-options" onclick="event.stopPropagation(); openTagOptions('${t}')">⋮</button>
             `;
             div.onclick = () => filterByTag(t);
             c.appendChild(div);
         });
         updateSelects();
     }
-    
+
     function renderRatingSidebar() {
         const c = document.getElementById('sidebar-rating-list'); c.innerHTML = '';
         for(let i=5; i>=1; i--) {
             const div = document.createElement('div');
-            div.className = 'menu-item';
-            div.innerHTML = `<span style="color:#FSDD82; font-size:1.1rem; margin-right:5px;">${'★'.repeat(i)}</span> <span>${i} Yıldız</span>`;
+            div.className = 'btn-sidebar-action';
+            div.style.border = 'none';
+            div.innerHTML = `<span style="color:#d4af37; margin-right:8px;">${'★'.repeat(i)}</span> ${i} Yıldız`;
             div.onclick = () => filterByRating(i);
             c.appendChild(div);
         }
@@ -506,41 +476,47 @@
 
         if(list.length === 0) {
             document.getElementById('d-text').innerText = "Bu filtrede not bulunamadı.";
+            document.getElementById('d-tag').innerText = "-";
+            document.getElementById('d-stars').innerText = "";
             return;
         }
         
         const r = list[Math.floor(Math.random() * list.length)];
         currentIndex = notes.indexOf(r);
-        
-        document.getElementById('d-text').innerHTML = r.text;
-        document.getElementById('d-tag').innerText = r.tag || 'GENEL';
-        const stars = parseInt(r.rating || 0);
+        displayNote(r);
+    }
+    
+    function displayNote(n) {
+        document.getElementById('d-text').innerHTML = n.text;
+        document.getElementById('d-tag').innerText = n.tag || 'IMP';
+        const stars = parseInt(n.rating || 0);
         document.getElementById('d-stars').innerText = '★'.repeat(stars);
     }
 
-    /* --- ACTIONS --- */
-    function openSettings() { 
-        document.getElementById('settings-url').value = localStorage.getItem('imp_app_url') || "";
-        document.getElementById('modal-settings').style.display = 'flex'; 
-    }
-    function saveSettings() {
-        const url = document.getElementById('settings-url').value.trim();
-        if(url) { localStorage.setItem('imp_app_url', url); GOOGLE_SCRIPT_URL = url; closeModal('modal-settings'); fetchNotes(); }
+    /* --- ADD NOTE --- */
+    function openAddNoteModal() {
+        document.getElementById('add-editor').innerHTML = "";
+        setStar(0, 'tempRatingAdd', 'add-stars-container'); // Reset stars
+        document.getElementById('modal-add').style.display = 'flex';
     }
 
-    function openAddNoteModal() { 
-        document.getElementById('add-editor').innerHTML = ""; 
-        document.getElementById('modal-add').style.display = 'flex'; 
-    }
     function runAddNote() {
-        const txt = document.getElementById('add-editor').innerText;
         const html = document.getElementById('add-editor').innerHTML;
+        const txt = document.getElementById('add-editor').innerText;
         const tag = document.getElementById('add-tag-select').value;
+        const rating = tempRatingAdd;
+
         if(!txt.trim()) return;
 
         let newNotes = [];
-        // Basit Regex Parse
-        if (/(^|\n)\s*\*+/.test(txt)) {
+        
+        // BULK IMPORT LOGIC (Plain Text & Stars)
+        // Eğer formatlanmamış metin * ile başlıyorsa toplu ekle.
+        // Formatlı metin (bold, renkli vs) varsa tekli ekle.
+        
+        const isRich = html.includes('<') && html.includes('>'); // Basit html kontrolü
+        
+        if (!isRich && /(^|\n)\s*\*+/.test(txt)) {
             const parts = txt.split(/(^|\n)\s*(?=\*)/g);
             parts.forEach(p => {
                 let clean = p.trim();
@@ -552,54 +528,65 @@
                 }
             });
         } else {
-            newNotes.push({ text: html, tag: tag, rating: 1 });
+            // Tekli Rich Text
+            newNotes.push({ text: html, tag: tag, rating: rating > 0 ? rating : 1 });
         }
-        if(newNotes.length===0 && txt.length>0) newNotes.push({ text: html, tag: tag, rating: 1 });
+        
+        if(newNotes.length === 0 && txt.length > 0) {
+             newNotes.push({ text: html, tag: tag, rating: rating > 0 ? rating : 1 });
+        }
 
         notes = [...notes, ...newNotes];
         closeModal('modal-add');
         saveToGoogle(notes).then(() => { showToast(newNotes.length + " Not Eklendi"); showRandom(); });
     }
 
+    /* --- EDIT NOTE --- */
     function openEditModal() {
         if(currentIndex === -1) return;
         const n = notes[currentIndex];
         document.getElementById('edit-editor').innerHTML = n.text;
         document.getElementById('edit-tag-select').value = n.tag;
-        document.getElementById('edit-rating').value = n.rating || 0;
+        // Mevcut puanı set et
+        setStar(parseInt(n.rating||0), 'tempRatingEdit', 'edit-stars-container');
         document.getElementById('modal-edit').style.display = 'flex';
     }
+
     function saveEdit() {
-        const txt = document.getElementById('edit-editor').innerHTML;
+        const html = document.getElementById('edit-editor').innerHTML;
         const tag = document.getElementById('edit-tag-select').value;
-        const r = document.getElementById('edit-rating').value;
-        notes[currentIndex] = { text: txt, tag: tag, rating: r };
+        const rating = tempRatingEdit;
+        
+        notes[currentIndex] = { text: html, tag: tag, rating: rating };
         closeModal('modal-edit');
-        displayNote(notes[currentIndex]); // Refresh UI
+        displayNote(notes[currentIndex]);
         saveToGoogle(notes).then(() => showToast("Not Güncellendi"));
-        showRandom(); // Refresh view
-    }
-    function displayNote(n) {
-        document.getElementById('d-text').innerHTML = n.text;
-        document.getElementById('d-tag').innerText = n.tag;
-        document.getElementById('d-stars').innerText = '★'.repeat(parseInt(n.rating||0));
     }
 
-    /* TAG ACTIONS */
+    /* --- SETTINGS & TAGS --- */
+    function openSettings() { 
+        document.getElementById('settings-url').value = localStorage.getItem('imp_app_url') || "";
+        document.getElementById('modal-settings').style.display = 'flex'; 
+    }
+    function saveSettings() {
+        const url = document.getElementById('settings-url').value.trim();
+        if(url) { localStorage.setItem('imp_app_url', url); GOOGLE_SCRIPT_URL = url; closeModal('modal-settings'); fetchNotes(); }
+    }
+    
     function openNewTagModal() { document.getElementById('modal-new-tag').style.display='flex'; }
     function createTag() {
         const n = document.getElementById('new-tag-name').value.trim();
         if(n && !tags.includes(n)) { tags.push(n); tags.sort(); renderSidebarTags(); closeModal('modal-new-tag'); }
     }
+    
     function openTagOptions(t) { targetTagForOptions=t; document.getElementById('opt-tag-name').innerText=t; document.getElementById('modal-tag-options').style.display='flex'; }
     function openRenameFromOptions() { closeModal('modal-tag-options'); document.getElementById('rename-tag-input').value=targetTagForOptions; document.getElementById('modal-rename-tag').style.display='flex'; }
     
     function runDeleteTag() {
-        if(confirm("Emin misin?")) {
+        if(confirm("Silmek istediğine emin misin?")) {
             notes.forEach(n => { if(n.tag===targetTagForOptions) n.tag="Genel"; });
             tags = tags.filter(t=>t!==targetTagForOptions);
-            renderSidebarTags(); closeModal('modal-tag-options');
-            saveToGoogle(notes);
+            renderSidebarTags(); closeModal('modal-tag-options'); saveToGoogle(notes);
         }
     }
     function runRenameTag() {
@@ -607,8 +594,7 @@
         if(nn) {
             notes.forEach(n => { if(n.tag===targetTagForOptions) n.tag=nn; });
             const i = tags.indexOf(targetTagForOptions); if(i!==-1) tags[i]=nn;
-            renderSidebarTags(); closeModal('modal-rename-tag');
-            saveToGoogle(notes);
+            renderSidebarTags(); closeModal('modal-rename-tag'); saveToGoogle(notes);
         }
     }
 
